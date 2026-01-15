@@ -30,24 +30,10 @@ class ArchiveFinder {
                 }
 
                 console.log(`ℹ️ Aucun channel "archive" trouvé dans la catégorie "${sourceCategory.name}"`);
+            } else {
+                console.log(`ℹ️ Le channel source n'est pas dans une catégorie, impossible de trouver un channel archive`);
             }
 
-            // Si pas de catégorie ou pas trouvé dans la catégorie, chercher dans tout le serveur
-            console.log(`🔍 Recherche du channel "archive" dans tout le serveur "${guild.name}"...`);
-
-            const allArchiveChannels = guild.channels.cache.filter(channel =>
-                channel.type === ChannelType.GuildText &&
-                channel.name.toLowerCase() === 'archive'
-            );
-
-            if (allArchiveChannels.size > 0) {
-                // Prendre le premier channel archive trouvé
-                const archiveChannel = allArchiveChannels.first();
-                console.log(`✅ Channel archive trouvé dans le serveur: #${archiveChannel.name}`);
-                return archiveChannel;
-            }
-
-            console.log(`❌ Aucun channel "archive" trouvé dans le serveur "${guild.name}"`);
             return null;
 
         } catch (error) {
@@ -125,8 +111,15 @@ class ArchiveFinder {
             return existingArchive;
         }
 
-        // Si aucun trouvé, essayer d'en créer un
-        console.log(`ℹ️ Aucun channel "archive" trouvé, tentative de création...`);
+        // Vérifier si le channel source a une catégorie
+        const sourceCategory = sourceChannel.parent;
+        if (!sourceCategory) {
+            console.log(`ℹ️ Le channel source n'est pas dans une catégorie, impossible de créer un channel archive`);
+            return null;
+        }
+
+        // Si aucun trouvé, essayer d'en créer un dans la catégorie
+        console.log(`ℹ️ Aucun channel "archive" trouvé dans la catégorie, tentative de création...`);
 
         try {
             // Vérifier les permissions du bot

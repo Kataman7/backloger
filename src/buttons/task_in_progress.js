@@ -27,27 +27,43 @@ module.exports = {
                 return;
             }
 
-            // Récupérer les utilisateurs déjà en cours
-            const inProgressField = embed.fields.find(
-                (field) => field.name === "Assigné à",
-            );
-            let currentUsers = "Personne";
-
-            if (inProgressField && inProgressField.value !== "Personne") {
-                currentUsers = inProgressField.value;
-
-                // Vérifier si l'utilisateur est déjà dans la liste
-                if (currentUsers.includes(user.username)) {
-                    await ErrorHandler.handleValidationError(
-                        interaction,
-                        MESSAGES.ERROR_ALREADY_ASSIGNED,
-                    );
-                    return;
+            // Récupérer les IDs des utilisateurs assignés depuis le footer
+            let assignedUserIds = [];
+            if (embed.footer && embed.footer.text) {
+                const footerText = embed.footer.text;
+                const idsMatch = footerText.match(/AssignedIDs:\s*(.+)/);
+                if (idsMatch) {
+                    assignedUserIds = idsMatch[1].split(',').filter(id => id.trim());
                 }
+            }
 
-                // Compter le nombre d'utilisateurs
-                const userCount = currentUsers.split(",").length;
-                if (userCount >= LIMITS.ASSIGNED_USERS_MAX) {
+            // Récupérer les usernames correspondants
+            let currentUsers = "Personne";
+            if (assignedUserIds.length > 0) {
+                try {
+                    const usernames = [];
+                    for (const userId of assignedUserIds) {
+                        const member = await interaction.guild.members.fetch(userId);
+                        usernames.push(member.user.username);
+                    }
+                    currentUsers = usernames.join(', ');
+                } catch (error) {
+                    console.error('Erreur lors de la récupération des usernames:', error);
+                    // Fallback: utiliser les IDs si fetch échoue
+                    currentUsers = assignedUserIds.join(', ');
+                }
+            }
+
+            // Vérifier si l'utilisateur est déjà assigné
+            const isAlreadyAssigned = assignedUserIds.includes(user.id);
+
+            if (isAlreadyAssigned) {
+                // Désassigner l'utilisateur
+                assignedUserIds = assignedUserIds.filter(id => id !== user.id);
+                console.log(`👤 ${user.username} s'est désassigné de la tâche`);
+            } else {
+                // Vérifier la limite d'utilisateurs
+                if (assignedUserIds.length >= LIMITS.ASSIGNED_USERS_MAX) {
                     await ErrorHandler.handleValidationError(
                         interaction,
                         `Cette tâche a déjà atteint la limite de ${LIMITS.ASSIGNED_USERS_MAX} utilisateurs assignés.`,
@@ -55,15 +71,31 @@ module.exports = {
                     return;
                 }
 
-                // Ajouter l'utilisateur à la liste
-                currentUsers += `, ${user.username}`;
+                // Assigner l'utilisateur
+                assignedUserIds.push(user.id);
+                console.log(`👤 ${user.username} s'est assigné à la tâche`);
+            }
+
+            // Mettre à jour les usernames
+            if (assignedUserIds.length > 0) {
+                try {
+                    const usernames = [];
+                    for (const userId of assignedUserIds) {
+                        const member = await interaction.guild.members.fetch(userId);
+                        usernames.push(member.user.username);
+                    }
+                    currentUsers = usernames.join(', ');
+                } catch (error) {
+                    console.error('Erreur lors de la récupération des usernames pour mise à jour:', error);
+                    currentUsers = assignedUserIds.join(', ');
+                }
             } else {
-                currentUsers = user.username;
+                currentUsers = "Personne";
             }
 
             // Mettre à jour l'embed
             const updatedEmbed = EmbedBuilder.from(embed)
-                .setColor(COLORS.IN_PROGRESS)
+                .setColor(assignedUserIds.length > 0 ? COLORS.IN_PROGRESS : COLORS.PENDING)
                 .spliceFields(1, 1, {
                     name: "Assigné à",
                     value: currentUsers,
@@ -71,20 +103,28 @@ module.exports = {
                 });
 
             // Mettre à jour le statut
-            const statusField = embed.fields.find(
-                (field) => field.name === "Statut",
-            );
-            if (
-                statusField &&
-                statusField.value !==
-                    `${EMOJIS.IN_PROGRESS} ${STATUS.IN_PROGRESS}`
-            ) {
+            if (assignedUserIds.length > 0) {
+                // Si des utilisateurs assignés, mettre en cours
                 updatedEmbed.spliceFields(0, 1, {
                     name: "Statut",
                     value: `${EMOJIS.IN_PROGRESS} ${STATUS.IN_PROGRESS}`,
                     inline: true,
                 });
+            } else {
+                // Si plus personne assigné, remettre à PENDING
+                updatedEmbed.spliceFields(0, 1, {
+                    name: "Statut",
+                    value: `${EMOJIS.PENDING} ${STATUS.PENDING}`,
+                    inline: true,
+                });
             }
+
+            // Mettre à jour le footer avec les IDs
+            const footerText = assignedUserIds.length > 0 ? `AssignedIDs: ${assignedUserIds.join(',')}` : '';
+            updatedEmbed.setFooter({
+                text: footerText,
+                iconURL: embed.footer?.iconURL || null,
+            });
 
             // Mettre à jour le message
             await message.edit({

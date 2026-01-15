@@ -38,25 +38,6 @@ module.exports = {
                 return;
             }
 
-            // Trouver le channel archive
-            const archiveChannel =
-                await ArchiveFinder.findOrCreateArchiveChannel(channel);
-
-            if (!archiveChannel) {
-                await ErrorHandler.handleMissingArchiveError(interaction);
-                return;
-            }
-
-            // Vérifier les permissions du bot dans le channel archive
-            if (!ArchiveFinder.hasArchiveAccess(archiveChannel)) {
-                await ErrorHandler.handleValidationError(
-                    interaction,
-                    "Le bot n'a pas les permissions nécessaires dans le channel archive.\n" +
-                        "Permissions requises: Voir le salon, Envoyer des messages, Intégrer des liens",
-                );
-                return;
-            }
-
             // Récupérer qui a terminé la tâche
             const completedByField = embed.fields.find(
                 (field) => field.name === "Terminé par",
@@ -71,7 +52,7 @@ module.exports = {
                 completedBy = `${completedByField.value}, ${user.username}`;
             }
 
-            // Mettre à jour l'embed original pour le marquer comme terminé
+            // Mettre à jour l'embed pour le marquer comme terminé
             const updatedEmbed = EmbedBuilder.from(embed)
                 .setColor(COLORS.DONE)
                 .spliceFields(0, 1, {
@@ -85,44 +66,53 @@ module.exports = {
                     inline: true,
                 });
 
-            // Créer l'embed pour l'archive
-            const archiveEmbed = EmbedBuilder.from(updatedEmbed)
-                .setTitle(`📁 ${embed.title}`)
-                .setDescription(
-                    `**Tâche archivée**\n\n${embed.description}\n\n---\n*Archivée le ${new Date().toLocaleDateString(
-                        "fr-FR",
-                        {
-                            weekday: "long",
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                        },
-                    )}*`,
-                )
-                .setFooter({
-                    text: `Archivée par ${user.username}`,
-                    iconURL: user.displayAvatarURL(),
-                })
-                .setTimestamp();
+            // Trouver le channel archive
+            const archiveChannel =
+                await ArchiveFinder.findOrCreateArchiveChannel(channel);
 
-            // Envoyer dans le channel d'archive
-            const archiveMessage = await archiveChannel.send({
-                embeds: [archiveEmbed],
-                content: `📁 **Tâche archivée**\n${user} a terminé cette tâche.`,
-            });
+            let archiveMessage = null;
 
-            // Mettre à jour le message original
-            await message.edit({
-                embeds: [updatedEmbed],
-                components: [], // Supprimer les boutons
-            });
+            // Si un channel archive existe et que le bot a accès, archiver la tâche
+            if (archiveChannel && ArchiveFinder.hasArchiveAccess(archiveChannel)) {
+                // Créer l'embed pour l'archive
+                const archiveEmbed = EmbedBuilder.from(updatedEmbed)
+                    .setTitle(`📁 ${embed.title}`)
+                    .setDescription(
+                        `**Tâche archivée**\n\n${embed.description}\n\n---\n*Archivée le ${new Date().toLocaleDateString(
+                            "fr-FR",
+                            {
+                                weekday: "long",
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            },
+                        )}*`,
+                    )
+                    .setFooter({
+                        text: `Archivée par ${user.username}`,
+                        iconURL: user.displayAvatarURL(),
+                    })
+                    .setTimestamp();
+
+                // Envoyer dans le channel d'archive
+                archiveMessage = await archiveChannel.send({
+                    embeds: [archiveEmbed],
+                    content: `📁 **Tâche archivée**\n${user} a terminé cette tâche.`,
+                });
+
+                console.log(
+                    `📁 Archivée dans: #${archiveChannel.name} (${archiveMessage.id})`,
+                );
+            } else {
+                console.log(`ℹ️ Aucun channel archive disponible, tâche terminée sans archivage`);
+            }
+
+            // Supprimer le message original
+            await message.delete();
 
             console.log(`✅ Tâche terminée par ${user.tag}`);
-            console.log(
-                `📁 Archivée dans: #${archiveChannel.name} (${archiveMessage.id})`,
-            );
             console.log(`👤 Terminée par: ${completedBy}`);
         } catch (error) {
             await ErrorHandler.handleInteractionError(
