@@ -3,7 +3,7 @@
  */
 
 const { EmbedBuilder } = require("discord.js");
-const { COLORS, EMOJIS } = require("./constants");
+const { COLORS, EMOJIS, MESSAGES } = require("./constants");
 const ArchiveFinder = require("./archiveFinder");
 
 class ErrorHandler {

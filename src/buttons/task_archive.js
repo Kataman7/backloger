@@ -4,7 +4,7 @@ const ErrorHandler = require("../utils/errorHandler");
 const ArchiveFinder = require("../utils/archiveFinder");
 
 module.exports = {
-    customId: "task_done",
+    customId: "task_archive",
 
     async execute(interaction, client) {
         try {
@@ -23,17 +23,17 @@ module.exports = {
                 return;
             }
 
-            // Vérifier si la tâche est déjà terminée
+            // Vérifier si la tâche est validée
             const statusField = embed.fields.find(
                 (field) => field.name === "Statut",
             );
             if (
-                statusField &&
-                statusField.value === `${EMOJIS.DONE} ${STATUS.DONE}`
+                !statusField ||
+                !statusField.value.includes(STATUS.VALIDATED)
             ) {
                 await ErrorHandler.handleValidationError(
                     interaction,
-                    MESSAGES.ERROR_TASK_ALREADY_DONE,
+                    MESSAGES.ERROR_TASK_NOT_VALIDATED,
                 );
                 return;
             }
@@ -52,7 +52,7 @@ module.exports = {
                 completedBy = `${completedByField.value}, ${user.username}`;
             }
 
-            // Mettre à jour l'embed pour le marquer comme terminé
+            // Mettre à jour l'embed pour l'archivage
             const updatedEmbed = EmbedBuilder.from(embed)
                 .setColor(COLORS.DONE)
                 .spliceFields(0, 1, {
@@ -99,11 +99,11 @@ module.exports = {
                 // Envoyer dans le channel d'archive
                 archiveMessage = await archiveChannel.send({
                     embeds: [archiveEmbed],
-                    content: MESSAGES.ARCHIVE_CONTENT.replace('{user}', user).replace('{action}', 'terminé'),
+                    content: MESSAGES.ARCHIVE_CONTENT.replace('{user}', user).replace('{action}', 'archivé'),
                 });
 
             } else {
-                // Aucun channel archive disponible, tâche terminée sans archivage
+                // Aucun channel archive disponible, tâche archivée sans archivage
             }
 
             // Supprimer le message original
@@ -112,9 +112,9 @@ module.exports = {
             await ErrorHandler.handleInteractionError(
                 interaction,
                 error,
-                "Erreur lors de la finalisation de la tâche",
+                "Erreur lors de l'archivage de la tâche",
             );
-            ErrorHandler.logError("Bouton task_done", error, {
+            ErrorHandler.logError("Bouton task_archive", error, {
                 userId: interaction.user.id,
                 messageId: interaction.message.id,
                 guildId: interaction.guildId,

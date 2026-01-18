@@ -25,13 +25,8 @@ class ArchiveFinder {
                 );
 
                 if (archiveChannel) {
-                    console.log(`✅ Channel archive trouvé dans la catégorie "${sourceCategory.name}": #${archiveChannel.name}`);
                     return archiveChannel;
                 }
-
-                console.log(`ℹ️ Aucun channel "archive" trouvé dans la catégorie "${sourceCategory.name}"`);
-            } else {
-                console.log(`ℹ️ Le channel source n'est pas dans une catégorie, impossible de trouver un channel archive`);
             }
 
             return null;
@@ -52,8 +47,6 @@ class ArchiveFinder {
             const guild = sourceChannel.guild;
             const sourceCategory = sourceChannel.parent;
 
-            console.log(`🛠️ Tentative de création du channel "archive"...`);
-
             const channelOptions = {
                 name: 'archive',
                 type: ChannelType.GuildText,
@@ -73,8 +66,6 @@ class ArchiveFinder {
             }
 
             const archiveChannel = await guild.channels.create(channelOptions);
-
-            console.log(`✅ Channel "archive" créé: #${archiveChannel.name}`);
 
             // Envoyer un message de bienvenue
             await archiveChannel.send({
@@ -114,19 +105,15 @@ class ArchiveFinder {
         // Vérifier si le channel source a une catégorie
         const sourceCategory = sourceChannel.parent;
         if (!sourceCategory) {
-            console.log(`ℹ️ Le channel source n'est pas dans une catégorie, impossible de créer un channel archive`);
             return null;
         }
 
         // Si aucun trouvé, essayer d'en créer un dans la catégorie
-        console.log(`ℹ️ Aucun channel "archive" trouvé dans la catégorie, tentative de création...`);
-
         try {
             // Vérifier les permissions du bot
             const permissions = sourceChannel.permissionsFor(sourceChannel.guild.members.me);
 
             if (!permissions.has('ManageChannels')) {
-                console.log('❌ Le bot n\'a pas la permission "ManageChannels" pour créer un channel archive');
                 return null;
             }
 
@@ -134,7 +121,6 @@ class ArchiveFinder {
             return newArchive;
 
         } catch (error) {
-            console.error('❌ Impossible de créer le channel archive:', error);
             return null;
         }
     }
@@ -158,7 +144,6 @@ class ArchiveFinder {
             }
 
             if (missingPermissions.length > 0) {
-                console.log(`❌ Permissions manquantes dans le channel archive: ${missingPermissions.join(', ')}`);
                 return false;
             }
 

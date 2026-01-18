@@ -22,7 +22,7 @@ module.exports = {
             if (!embed) {
                 await ErrorHandler.handleValidationError(
                     interaction,
-                    "Impossible de trouver l'embed de la tâche. La tâche a peut-être été supprimée.",
+                    MESSAGES.ERROR_EMBED_NOT_FOUND,
                 );
                 return;
             }
@@ -60,20 +60,18 @@ module.exports = {
             if (isAlreadyAssigned) {
                 // Désassigner l'utilisateur
                 assignedUserIds = assignedUserIds.filter(id => id !== user.id);
-                console.log(`👤 ${user.username} s'est désassigné de la tâche`);
             } else {
                 // Vérifier la limite d'utilisateurs
                 if (assignedUserIds.length >= LIMITS.ASSIGNED_USERS_MAX) {
                     await ErrorHandler.handleValidationError(
                         interaction,
-                        `Cette tâche a déjà atteint la limite de ${LIMITS.ASSIGNED_USERS_MAX} utilisateurs assignés.`,
+                        MESSAGES.ERROR_TASK_ASSIGNMENT_LIMIT.replace('{limit}', LIMITS.ASSIGNED_USERS_MAX),
                     );
                     return;
                 }
 
                 // Assigner l'utilisateur
                 assignedUserIds.push(user.id);
-                console.log(`👤 ${user.username} s'est assigné à la tâche`);
             }
 
             // Mettre à jour les usernames
@@ -130,9 +128,6 @@ module.exports = {
             await message.edit({
                 embeds: [updatedEmbed],
             });
-
-            console.log(`✅ Tâche mise en cours par ${user.tag}`);
-            console.log(`👥 Utilisateurs assignés: ${currentUsers}`);
         } catch (error) {
             await ErrorHandler.handleInteractionError(
                 interaction,

@@ -47,7 +47,7 @@ module.exports = {
             if (!taskName || taskName.trim().length === 0) {
                 await ErrorHandler.handleValidationError(
                     interaction,
-                    "Le nom de la tâche ne peut pas être vide.",
+                    MESSAGES.ERROR_TASK_NAME_EMPTY,
                 );
                 return;
             }
@@ -55,7 +55,7 @@ module.exports = {
             if (!taskDescription || taskDescription.trim().length === 0) {
                 await ErrorHandler.handleValidationError(
                     interaction,
-                    "La description de la tâche ne peut pas être vide.",
+                    MESSAGES.ERROR_TASK_DESC_EMPTY,
                 );
                 return;
             }
@@ -102,15 +102,10 @@ module.exports = {
             // Créer les boutons
             const buttons = new ActionRowBuilder().addComponents(
                 new ButtonBuilder()
-                    .setCustomId("task_in_progress")
-                    .setLabel("En cours")
+                    .setCustomId("task_status")
+                    .setLabel("Commencer")
                     .setStyle(ButtonStyle.Primary)
                     .setEmoji("⚡"),
-                new ButtonBuilder()
-                    .setCustomId("task_done")
-                    .setLabel("Terminée")
-                    .setStyle(ButtonStyle.Success)
-                    .setEmoji("✅"),
             );
 
             // Envoyer le message avec l'embed et les boutons
@@ -118,9 +113,6 @@ module.exports = {
                 embeds: [taskEmbed],
                 components: [buttons],
             });
-
-            console.log(`✅ Tâche créée: "${taskName}" par ${user.tag}`);
-            console.log(`📁 Channel d'archive: #${archiveCheck.channel.name}`);
         } catch (error) {
             await ErrorHandler.handleInteractionError(
                 interaction,

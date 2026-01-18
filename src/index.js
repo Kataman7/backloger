@@ -30,9 +30,8 @@ for (const file of commandFiles) {
 
     if ('data' in command && 'execute' in command) {
         client.commands.set(command.data.name, command);
-        console.log(`✅ Commande chargée: ${command.data.name}`);
     } else {
-        console.log(`⚠️  La commande ${filePath} manque une propriété "data" ou "execute".`);
+        // La commande manque une propriété "data" ou "execute"
     }
 }
 
@@ -47,9 +46,8 @@ if (fs.existsSync(buttonsPath)) {
 
         if ('customId' in button && 'execute' in button) {
             client.buttons.set(button.customId, button);
-            console.log(`✅ Bouton chargé: ${button.customId}`);
         } else {
-            console.log(`⚠️  Le bouton ${filePath} manque une propriété "customId" ou "execute".`);
+            // Le bouton manque une propriété "customId" ou "execute"
         }
     }
 }
@@ -67,8 +65,6 @@ for (const file of eventFiles) {
     } else {
         client.on(event.name, (...args) => event.execute(...args, client));
     }
-
-    console.log(`✅ Événement chargé: ${event.name}`);
 }
 
 // Gestionnaire d'erreurs global
@@ -83,7 +79,7 @@ process.on('uncaughtException', error => {
 // Connexion au bot Discord
 client.login(process.env.DISCORD_TOKEN)
     .then(() => {
-        console.log(`✅ Bot connecté en tant que ${client.user.tag}`);
+        // Bot connecté
     })
     .catch(error => {
         console.error('❌ Erreur de connexion:', error);

@@ -1,4 +1,5 @@
 const { Events } = require('discord.js');
+const { MESSAGES } = require('../utils/constants');
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -19,12 +20,12 @@ module.exports = {
 
                 if (interaction.replied || interaction.deferred) {
                     await interaction.followUp({
-                        content: '❌ Une erreur est survenue lors de l\'exécution de cette commande.',
+                        content: MESSAGES.ERROR_COMMAND_EXECUTION,
                         ephemeral: true
                     });
                 } else {
                     await interaction.reply({
-                        content: '❌ Une erreur est survenue lors de l\'exécution de cette commande.',
+                        content: MESSAGES.ERROR_COMMAND_EXECUTION,
                         ephemeral: true
                     });
                 }
@@ -46,12 +47,12 @@ module.exports = {
 
                 if (interaction.replied || interaction.deferred) {
                     await interaction.followUp({
-                        content: '❌ Une erreur est survenue lors du traitement de ce bouton.',
+                        content: MESSAGES.ERROR_BUTTON_EXECUTION,
                         ephemeral: true
                     });
                 } else {
                     await interaction.reply({
-                        content: '❌ Une erreur est survenue lors du traitement de ce bouton.',
+                        content: MESSAGES.ERROR_BUTTON_EXECUTION,
                         ephemeral: true
                     });
                 }
