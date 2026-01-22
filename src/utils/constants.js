@@ -52,7 +52,6 @@ module.exports = {
         ERROR_VALIDATION: '❌ Erreur de validation.',
         ERROR_INTERACTION: '❌ Erreur lors du traitement de l\'interaction.',
         ARCHIVE_CONTENT: '📁 **Tâche archivée**\n{user} a {action} cette tâche.',
-        ARCHIVE_DESCRIPTION: '**Tâche archivée**\n\n{description}\n\n---\n*Archivée le {date}*',
         ERROR_ARCHIVE_TASK: 'Erreur lors de l\'archivage de la tâche',
         ERROR_DONE_TASK: 'Erreur lors de la finalisation de la tâche',
         ERROR_STATUS_CHANGE: 'Erreur lors du changement de statut de la tâche',

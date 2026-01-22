@@ -91,30 +91,24 @@ module.exports = {
             const participantMentions = assignedUser ? [`<@${assignedUser.id}>`] : [];
 
             const taskEmbed = new EmbedBuilder()
-                .setColor(COLORS.PENDING)
-                .setTitle(`${EMBED_PREFIXES.TASK} ${taskName}`)
-                .setDescription(taskDescription)
-                .addFields(
-                    {
-                        name: FIELD_NAMES.STATUS,
-                        value: `${EMOJIS.PENDING} ${STATUS.PENDING}`,
-                        inline: true,
-                    },
-                    {
-                        name: FIELD_NAMES.PARTICIPANTS,
-                        value: participantMentions.join(', ') || DEFAULT_VALUES.NO_ONE,
-                        inline: true,
-                    },
-                    {
-                        name: FIELD_NAMES.COMPLETED_BY,
-                        value: DEFAULT_VALUES.NO_ONE,
-                        inline: true,
-                    },
-                )
-                .setFooter({
-                    text: participants.join(',') || ' ',
-                })
-                .setTimestamp();
+                .setColor(COLORS.PENDING);
+            taskEmbed.addFields([
+                {
+                    name: FIELD_NAMES.STATUS,
+                    value: `${EMOJIS.PENDING} ${STATUS.PENDING}`,
+                    inline: true,
+                },
+                {
+                    name: FIELD_NAMES.PARTICIPANTS,
+                    value: participantMentions.join(', ') || DEFAULT_VALUES.NO_ONE,
+                    inline: true,
+                },
+                {
+                    name: FIELD_NAMES.COMPLETED_BY,
+                    value: DEFAULT_VALUES.NO_ONE,
+                    inline: true,
+                },
+            ]);
 
             // Créer les boutons
             const buttons = new ActionRowBuilder().addComponents(
@@ -132,6 +126,7 @@ module.exports = {
 
             // Envoyer le message avec l'embed et les boutons
             await interaction.editReply({
+                content: `## ${taskName}\n **${taskDescription}**`,
                 embeds: [taskEmbed],
                 components: [buttons],
             });

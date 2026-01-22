@@ -30,9 +30,15 @@ module.exports = {
                 return;
             }
 
-            // Récupérer les participants du footer
-            const footerText = embed.footer?.text?.trim() || '';
-            let participants = footerText ? footerText.split(',').filter(id => id.trim()) : [];
+            // Récupérer les participants du champ Participants
+            const participantsField = embed.fields.find(field => field.name === FIELD_NAMES.PARTICIPANTS);
+            let participants = [];
+            if (participantsField && participantsField.value !== DEFAULT_VALUES.NO_ONE) {
+                participants = participantsField.value.split(', ').map(mention => {
+                    const match = mention.match(/<@(\d+)>/);
+                    return match ? match[1] : null;
+                }).filter(id => id);
+            }
 
             // Vérifier si l'utilisateur est déjà participant
             const isParticipant = participants.includes(user.id);
@@ -72,9 +78,6 @@ module.exports = {
                     name: FIELD_NAMES.PARTICIPANTS,
                     value: participantMentions.join(', ') || DEFAULT_VALUES.NO_ONE,
                     inline: true,
-                })
-                .setFooter({
-                    text: participants.join(',') || ' ',
                 });
 
             // Mettre à jour le message

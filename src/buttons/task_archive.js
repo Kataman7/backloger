@@ -77,30 +77,15 @@ module.exports = {
             if (archiveChannel && ArchiveFinder.hasArchiveAccess(archiveChannel)) {
                 // Créer l'embed pour l'archive
                 const archiveEmbed = EmbedBuilder.from(updatedEmbed)
-                    .setTitle(`${EMBED_PREFIXES.ARCHIVE} ${embed.title}`)
-                    .setDescription(
-                        MESSAGES.ARCHIVE_DESCRIPTION.replace('{description}', embed.description).replace('{date}', new Date().toLocaleDateString(
-                            "fr-FR",
-                            {
-                                weekday: "long",
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            },
-                        )),
-                    )
                     .setFooter({
                         text: `Archivée par ${user.username}`,
                         iconURL: user.displayAvatarURL(),
-                    })
-                    .setTimestamp();
+                    });
 
                 // Envoyer dans le channel d'archive
                 archiveMessage = await archiveChannel.send({
+                    content: `${message.content}`,
                     embeds: [archiveEmbed],
-                    content: MESSAGES.ARCHIVE_CONTENT.replace('{user}', user).replace('{action}', 'archivé'),
                 });
 
             } else {
