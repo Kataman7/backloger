@@ -11,35 +11,50 @@ const {
     STATUS,
     LIMITS,
     MESSAGES,
+    FIELD_NAMES,
+    DEFAULT_VALUES,
+    BUTTON_LABELS,
+    EMBED_PREFIXES,
+    COMMAND_DESCRIPTIONS,
+    OPTION_NAMES,
+    OPTION_DESCRIPTIONS,
+    LOG_MESSAGES
 } = require("../utils/constants");
 const ErrorHandler = require("../utils/errorHandler");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("task")
-        .setDescription("Crée une nouvelle tâche")
+        .setDescription(COMMAND_DESCRIPTIONS.TASK)
         .addStringOption((option) =>
             option
-                .setName("nom")
-                .setDescription("Nom de la tâche")
+                .setName(OPTION_NAMES.NAME)
+                .setDescription(OPTION_DESCRIPTIONS.NAME)
                 .setRequired(true)
                 .setMaxLength(LIMITS.TASK_NAME_MAX),
         )
         .addStringOption((option) =>
             option
-                .setName("description")
-                .setDescription("Description de la tâche")
+                .setName(OPTION_NAMES.DESCRIPTION)
+                .setDescription(OPTION_DESCRIPTIONS.DESCRIPTION)
                 .setRequired(true)
                 .setMaxLength(LIMITS.TASK_DESC_MAX),
+        )
+        .addUserOption((option) =>
+            option
+                .setName(OPTION_NAMES.ASSIGN)
+                .setDescription(OPTION_DESCRIPTIONS.ASSIGN)
+                .setRequired(false)
         ),
 
     async execute(interaction, client) {
         try {
             await interaction.deferReply({ ephemeral: false });
 
-            const taskName = interaction.options.getString("nom");
+            const taskName = interaction.options.getString(OPTION_NAMES.NAME);
             const taskDescription =
-                interaction.options.getString("description");
+                interaction.options.getString(OPTION_NAMES.DESCRIPTION);
+            const assignedUser = interaction.options.getUser(OPTION_NAMES.ASSIGN);
             const user = interaction.user;
             const channel = interaction.channel;
 
@@ -72,38 +87,45 @@ module.exports = {
             }
 
             // Créer l'embed de la tâche
+            const participants = assignedUser ? [assignedUser.id] : [];
+            const participantMentions = assignedUser ? [`<@${assignedUser.id}>`] : [];
+
             const taskEmbed = new EmbedBuilder()
                 .setColor(COLORS.PENDING)
-                .setTitle(`📋 ${taskName}`)
+                .setTitle(`${EMBED_PREFIXES.TASK} ${taskName}`)
                 .setDescription(taskDescription)
                 .addFields(
                     {
-                        name: "Statut",
+                        name: FIELD_NAMES.STATUS,
                         value: `${EMOJIS.PENDING} ${STATUS.PENDING}`,
                         inline: true,
                     },
                     {
-                        name: "Assigné à",
-                        value: "Personne",
+                        name: FIELD_NAMES.PARTICIPANTS,
+                        value: participantMentions.join(', ') || DEFAULT_VALUES.NO_ONE,
                         inline: true,
                     },
                     {
-                        name: "Terminé par",
-                        value: "Personne",
+                        name: FIELD_NAMES.COMPLETED_BY,
+                        value: DEFAULT_VALUES.NO_ONE,
                         inline: true,
                     },
                 )
                 .setFooter({
-                    text: `Créé par ${user.username}`,
-                    iconURL: user.displayAvatarURL(),
+                    text: participants.join(',') || ' ',
                 })
                 .setTimestamp();
 
             // Créer les boutons
             const buttons = new ActionRowBuilder().addComponents(
                 new ButtonBuilder()
+                    .setCustomId("task_toggle_participation")
+                    .setLabel(BUTTON_LABELS.JOIN_LEAVE)
+                    .setStyle(ButtonStyle.Primary)
+                    .setEmoji("👥"),
+                new ButtonBuilder()
                     .setCustomId("task_status")
-                    .setLabel("Commencer")
+                    .setLabel(BUTTON_LABELS.START)
                     .setStyle(ButtonStyle.Primary)
                     .setEmoji("⚡"),
             );
@@ -117,9 +139,9 @@ module.exports = {
             await ErrorHandler.handleInteractionError(
                 interaction,
                 error,
-                "Erreur lors de la création de la tâche",
+                MESSAGES.ERROR_TASK_CREATION,
             );
-            ErrorHandler.logError("Commande /task", error, {
+            ErrorHandler.logError(LOG_MESSAGES.COMMAND_TASK, error, {
                 userId: interaction.user.id,
                 guildId: interaction.guildId,
                 channelId: interaction.channelId,

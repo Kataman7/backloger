@@ -1,5 +1,5 @@
 const { EmbedBuilder } = require("discord.js");
-const { COLORS, EMOJIS, STATUS, MESSAGES } = require("../utils/constants");
+const { COLORS, EMOJIS, STATUS, MESSAGES, FIELD_NAMES, DEFAULT_VALUES, EMBED_PREFIXES, LOG_MESSAGES } = require("../utils/constants");
 const ErrorHandler = require("../utils/errorHandler");
 const ArchiveFinder = require("../utils/archiveFinder");
 
@@ -25,7 +25,7 @@ module.exports = {
 
             // Vérifier si la tâche est déjà terminée
             const statusField = embed.fields.find(
-                (field) => field.name === "Statut",
+                (field) => field.name === FIELD_NAMES.STATUS,
             );
             if (
                 statusField &&
@@ -40,13 +40,13 @@ module.exports = {
 
             // Récupérer qui a terminé la tâche
             const completedByField = embed.fields.find(
-                (field) => field.name === "Terminé par",
+                (field) => field.name === FIELD_NAMES.COMPLETED_BY,
             );
             let completedBy = user.username;
 
             if (
                 completedByField &&
-                completedByField.value !== "Personne" &&
+                completedByField.value !== DEFAULT_VALUES.NO_ONE &&
                 completedByField.value !== user.username
             ) {
                 completedBy = `${completedByField.value}, ${user.username}`;
@@ -56,12 +56,12 @@ module.exports = {
             const updatedEmbed = EmbedBuilder.from(embed)
                 .setColor(COLORS.DONE)
                 .spliceFields(0, 1, {
-                    name: "Statut",
+                    name: FIELD_NAMES.STATUS,
                     value: `${EMOJIS.DONE} ${STATUS.DONE}`,
                     inline: true,
                 })
                 .spliceFields(2, 1, {
-                    name: "Terminé par",
+                    name: FIELD_NAMES.COMPLETED_BY,
                     value: completedBy,
                     inline: true,
                 });
@@ -76,9 +76,9 @@ module.exports = {
             if (archiveChannel && ArchiveFinder.hasArchiveAccess(archiveChannel)) {
                 // Créer l'embed pour l'archive
                 const archiveEmbed = EmbedBuilder.from(updatedEmbed)
-                    .setTitle(`📁 ${embed.title}`)
+                    .setTitle(`${EMBED_PREFIXES.ARCHIVE} ${embed.title}`)
                     .setDescription(
-                        `**Tâche archivée**\n\n${embed.description}\n\n---\n*Archivée le ${new Date().toLocaleDateString(
+                        MESSAGES.ARCHIVE_DESCRIPTION.replace('{description}', embed.description).replace('{date}', new Date().toLocaleDateString(
                             "fr-FR",
                             {
                                 weekday: "long",
@@ -88,7 +88,7 @@ module.exports = {
                                 hour: "2-digit",
                                 minute: "2-digit",
                             },
-                        )}*`,
+                        )),
                     )
                     .setFooter({
                         text: `Archivée par ${user.username}`,
@@ -112,9 +112,9 @@ module.exports = {
             await ErrorHandler.handleInteractionError(
                 interaction,
                 error,
-                "Erreur lors de la finalisation de la tâche",
+                MESSAGES.ERROR_DONE_TASK,
             );
-            ErrorHandler.logError("Bouton task_done", error, {
+            ErrorHandler.logError(LOG_MESSAGES.BUTTON_DONE, error, {
                 userId: interaction.user.id,
                 messageId: interaction.message.id,
                 guildId: interaction.guildId,

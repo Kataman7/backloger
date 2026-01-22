@@ -4,18 +4,18 @@
 
 module.exports = {
     COLORS: {
-        PENDING: 0x0099FF,    // Bleu - En attente
-        IN_PROGRESS: 0xFFA500, // Orange - En cours
-        VALIDATED: 0xFFFF00,   // Jaune - Validée
-        DONE: 0x00FF00,       // Vert - Terminée
+        PENDING: 0xFFA500,    // Orange - En attente
+        IN_PROGRESS: 0x0099FF, // Bleu - En cours
+        VALIDATED: 0x00FF00,   // Vert - Validée
+        DONE: 0xFFFFFF,       // Blanc - Terminée
         ERROR: 0xFF0000       // Rouge - Erreur
     },
 
     EMOJIS: {
-        PENDING: '🟡',
-        IN_PROGRESS: '🟠',
-        VALIDATED: '🟣',
-        DONE: '🟢',
+        PENDING: '🟠',
+        IN_PROGRESS: '🔵',
+        VALIDATED: '🟢',
+        DONE: '⚪',
         ERROR: '🔴'
     },
 
@@ -51,6 +51,63 @@ module.exports = {
         ERROR_BUTTON_EXECUTION: '❌ Une erreur est survenue lors du traitement de ce bouton.',
         ERROR_VALIDATION: '❌ Erreur de validation.',
         ERROR_INTERACTION: '❌ Erreur lors du traitement de l\'interaction.',
-        ARCHIVE_CONTENT: '📁 **Tâche archivée**\n{user} a {action} cette tâche.'
+        ARCHIVE_CONTENT: '📁 **Tâche archivée**\n{user} a {action} cette tâche.',
+        ARCHIVE_DESCRIPTION: '**Tâche archivée**\n\n{description}\n\n---\n*Archivée le {date}*',
+        ERROR_ARCHIVE_TASK: 'Erreur lors de l\'archivage de la tâche',
+        ERROR_DONE_TASK: 'Erreur lors de la finalisation de la tâche',
+        ERROR_STATUS_CHANGE: 'Erreur lors du changement de statut de la tâche',
+        ERROR_PARTICIPATION: 'Erreur lors de la gestion de la participation à la tâche',
+        ERROR_TASK_CREATION: 'Erreur lors de la création de la tâche'
+    },
+
+    FIELD_NAMES: {
+        STATUS: 'Statut',
+        PARTICIPANTS: 'Participants',
+        COMPLETED_BY: 'Terminé par'
+    },
+
+    DEFAULT_VALUES: {
+        NO_ONE: 'Personne',
+        UNKNOWN_USER: 'Utilisateur inconnu'
+    },
+
+    BUTTON_LABELS: {
+        JOIN_LEAVE: 'Rejoindre/Quitter',
+        START: 'Commencer',
+        VALIDATE: 'Valider',
+        ARCHIVE: 'Archiver'
+    },
+
+    EMBED_PREFIXES: {
+        TASK: '📋',
+        ARCHIVE: '📁'
+    },
+
+    COMMAND_NAMES: {
+        TASK: 'task'
+    },
+
+    COMMAND_DESCRIPTIONS: {
+        TASK: 'Crée une nouvelle tâche'
+    },
+
+    OPTION_NAMES: {
+        NAME: 'nom',
+        DESCRIPTION: 'description',
+        ASSIGN: 'assigner'
+    },
+
+    OPTION_DESCRIPTIONS: {
+        NAME: 'Nom de la tâche',
+        DESCRIPTION: 'Description de la tâche',
+        ASSIGN: 'Utilisateur à assigner à la tâche (optionnel)'
+    },
+
+    LOG_MESSAGES: {
+        BUTTON_ARCHIVE: 'Bouton task_archive',
+        BUTTON_DONE: 'Bouton task_done',
+        BUTTON_STATUS: 'Bouton task_status',
+        BUTTON_PARTICIPATION: 'Bouton task_toggle_participation',
+        COMMAND_TASK: 'Commande /task'
     }
 };

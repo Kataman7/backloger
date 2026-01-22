@@ -4,6 +4,9 @@ const {
     EMOJIS,
     STATUS,
     MESSAGES,
+    FIELD_NAMES,
+    BUTTON_LABELS,
+    LOG_MESSAGES
 } = require("../utils/constants");
 const ErrorHandler = require("../utils/errorHandler");
 
@@ -27,7 +30,7 @@ module.exports = {
             }
 
             // Récupérer le statut actuel
-            const statusField = embed.fields.find(field => field.name === "Statut");
+            const statusField = embed.fields.find(field => field.name === FIELD_NAMES.STATUS);
             let currentStatus = STATUS.PENDING;
 
             if (statusField) {
@@ -48,7 +51,7 @@ module.exports = {
                     newStatus = STATUS.IN_PROGRESS;
                     newColor = COLORS.IN_PROGRESS;
                     newEmoji = EMOJIS.IN_PROGRESS;
-                    buttonLabel = "Valider";
+                    buttonLabel = BUTTON_LABELS.VALIDATE;
                     buttonEmoji = "✅";
                     buttonStyle = ButtonStyle.Success;
                     break;
@@ -56,7 +59,7 @@ module.exports = {
                     newStatus = STATUS.VALIDATED;
                     newColor = COLORS.VALIDATED;
                     newEmoji = EMOJIS.VALIDATED;
-                    buttonLabel = "Archiver";
+                    buttonLabel = BUTTON_LABELS.ARCHIVE;
                     buttonEmoji = "📁";
                     buttonStyle = ButtonStyle.Secondary;
                     break;
@@ -65,7 +68,7 @@ module.exports = {
                     newStatus = STATUS.VALIDATED;
                     newColor = COLORS.VALIDATED;
                     newEmoji = EMOJIS.VALIDATED;
-                    buttonLabel = "Archiver";
+                    buttonLabel = BUTTON_LABELS.ARCHIVE;
                     buttonEmoji = "📁";
                     buttonStyle = ButtonStyle.Secondary;
                     break;
@@ -73,7 +76,7 @@ module.exports = {
                     newStatus = STATUS.IN_PROGRESS;
                     newColor = COLORS.IN_PROGRESS;
                     newEmoji = EMOJIS.IN_PROGRESS;
-                    buttonLabel = "Valider";
+                    buttonLabel = BUTTON_LABELS.VALIDATE;
                     buttonEmoji = "✅";
                     buttonStyle = ButtonStyle.Success;
             }
@@ -82,13 +85,31 @@ module.exports = {
             const updatedEmbed = EmbedBuilder.from(embed)
                 .setColor(newColor)
                 .spliceFields(0, 1, {
-                    name: "Statut",
+                    name: FIELD_NAMES.STATUS,
                     value: `${newEmoji} ${newStatus}`,
                     inline: true,
                 });
 
+            // Si on passe à VALIDATED, mettre à jour "Terminé par"
+            if (newStatus === STATUS.VALIDATED) {
+                updatedEmbed.spliceFields(2, 1, {
+                    name: "Terminé par",
+                    value: `<@${user.id}>`,
+                    inline: true,
+                });
+            }
+
             // Créer les boutons
             const buttons = new ActionRowBuilder();
+
+            // Toujours ajouter le bouton de participation
+            buttons.addComponents(
+                new ButtonBuilder()
+                    .setCustomId("task_toggle_participation")
+                    .setLabel(BUTTON_LABELS.JOIN_LEAVE)
+                    .setStyle(ButtonStyle.Primary)
+                    .setEmoji("👥")
+            );
 
             if (newStatus === STATUS.VALIDATED) {
                 // Si validée, ajouter le bouton archiver
@@ -119,9 +140,9 @@ module.exports = {
             await ErrorHandler.handleInteractionError(
                 interaction,
                 error,
-                "Erreur lors du changement de statut de la tâche",
+                MESSAGES.ERROR_STATUS_CHANGE,
             );
-            ErrorHandler.logError("Bouton task_status", error, {
+            ErrorHandler.logError(LOG_MESSAGES.BUTTON_STATUS, error, {
                 userId: interaction.user.id,
                 messageId: interaction.message.id,
                 guildId: interaction.guildId,
